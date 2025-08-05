@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  worker:
+    build: .
+    command: celery -A tasks.celery worker --loglevel=info
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
