@@ -32,7 +32,12 @@ def task_status(task_id):
     elif task.state == "PROGRESS":
         return jsonify({"state": "progress", "meta": task.info})
     elif task.state == "SUCCESS":
-        return jsonify({"state": "done", "file": os.path.basename(task.result["output_file"])})
+        result = task.result
+        return jsonify({
+            "state": "done",
+            "file": os.path.basename(result["output_file"]),
+            "wave_images": result["wave_images"]
+        })
     else:
         return jsonify({"state": task.state, "meta": str(task.info)})
 
