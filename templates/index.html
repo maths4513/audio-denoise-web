@@ -15,6 +15,8 @@
     <div id="visuals" class="mt-4"></div>
 
     <script>
+        let rawFileName = null;
+
         const form = document.getElementById("upload-form");
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -27,6 +29,7 @@
             const resp = await fetch("/upload", {method: "POST", body: formData});
             const data = await resp.json();
             if (data.task_id) {
+                rawFileName = data.raw_file; // 保存原始音频文件名
                 pollStatus(data.task_id);
             }
         });
@@ -41,12 +44,15 @@
                     statusDiv.innerHTML = `<p>处理中: ${data.meta.msg}</p>`;
                 } else if (data.state === "done") {
                     clearInterval(interval);
-                    statusDiv.innerHTML = `<h4>✅ 完成: <a href="/download/${data.file}">下载音频</a></h4>`;
+                    statusDiv.innerHTML = `<h4>✅ 完成: <a href="/download/${data.file}" download>下载降噪音频</a></h4>`;
                     visualsDiv.innerHTML = `
-                        <h5>原始音频</h5>
+                        <h5>🎧 原始音频</h5>
+                        <audio controls src="/download/${rawFileName}" class="w-100 mb-3"></audio>
                         <img src="/download/${data.wave_images.raw_wave}" class="img-fluid mb-2">
                         <img src="/download/${data.wave_images.raw_spec}" class="img-fluid mb-4">
-                        <h5>降噪后音频</h5>
+                        
+                        <h5>🎧 降噪后音频</h5>
+                        <audio controls src="/download/${data.file}" class="w-100 mb-3"></audio>
                         <img src="/download/${data.wave_images.denoise_wave}" class="img-fluid mb-2">
                         <img src="/download/${data.wave_images.denoise_spec}" class="img-fluid">
                     `;

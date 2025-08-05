@@ -22,7 +22,7 @@ def upload():
     file.save(filepath)
 
     task = denoise_task.delay(file.filename)
-    return jsonify({"task_id": task.id})
+    return jsonify({"task_id": task.id, "raw_file": file.filename})
 
 @app.route("/status/<task_id>")
 def task_status(task_id):
@@ -43,7 +43,13 @@ def task_status(task_id):
 
 @app.route("/download/<filename>")
 def download(filename):
-    return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
+    # 自动选择 uploads 和 output 目录
+    if os.path.exists(os.path.join(OUTPUT_FOLDER, filename)):
+        return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=False)
+    elif os.path.exists(os.path.join(UPLOAD_FOLDER, filename)):
+        return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)
+    else:
+        return "File not found", 404
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
